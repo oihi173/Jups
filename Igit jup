@@ -1,0 +1,21 @@
+bodyVelocity = Instance.new("BodyVelocity", root)
+bodyVelocity.MaxForce = Vector3.new(9e9,9e9,9e9)
+bodyVelocity.Velocity = Vector3.new(0,0,0)
+
+flying = true
+flyBtn.Text = "Fly: ON"
+
+while flying do
+    local cam = workspace.CurrentCamera
+    local moveDir = Vector3.new()
+    if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+    if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+    if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+    if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+    bodyVelocity.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * speed or Vector3.new()
+    bodyGyro.CFrame = cam.CFrame
+    game:GetService("RunService").RenderStepped:Wait()
+end
+if bodyGyro then bodyGyro:Destroy() end
+if bodyVelocity then bodyVelocity:Destroy() end
+flyBtn.Text = "Fly: OFF"
