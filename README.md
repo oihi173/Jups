@@ -1,304 +1,273 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local mouse = LocalPlayer:GetMouse()
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-local panel = Instance.new("ScreenGui")
-panel.Name = "PainelCompleto"
-panel.Parent = game:GetService("CoreGui")
+-- Função para criar explosão visual (efeito teológico)
+local function createExplosion(parent)
+    local explosion = Instance.new("Frame")
+    explosion.Size = UDim2.new(0, math.random(40,80), 0, math.random(40,80))
+    explosion.Position = UDim2.new(math.random(), 0, math.random(), 0)
+    explosion.BackgroundColor3 = Color3.fromRGB(math.random(100,255), math.random(100,255), math.random(100,255))
+    explosion.BackgroundTransparency = 0.3
+    explosion.BorderSizePixel = 0
+    explosion.Visible = true
+    explosion.ZIndex = 10
+    explosion.Parent = parent
+
+    local tween = TweenService:Create(explosion, TweenInfo.new(0.7), {BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 0)})
+    tween:Play()
+    tween.Completed:Connect(function()
+        explosion:Destroy()
+    end)
+end
+
+-- Criação do painel principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "TheologyMurderPanel"
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 350, 0, 530)
-mainFrame.Position = UDim2.new(0.5, -175, 0.5, -265)
-mainFrame.BackgroundTransparency = 1 -- Removido fundo preto
-mainFrame.BorderSizePixel = 2
+mainFrame.Size = UDim2.new(0, 380, 0, 340)
+mainFrame.Position = UDim2.new(0.5, -190, 0.5, -170)
+mainFrame.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false
 mainFrame.Active = true
 mainFrame.Draggable = true
-mainFrame.Parent = panel
+mainFrame.Parent = ScreenGui
 
-local capa = Instance.new("TextLabel")
-capa.Size = UDim2.new(1, 0, 0, 210)
-capa.Position = UDim2.new(0,0,0,0)
-capa.BackgroundTransparency = 1
-capa.TextColor3 = Color3.fromRGB(200,255,200)
-capa.Font = Enum.Font.Code
-capa.TextSize = 16
-capa.TextXAlignment = Enum.TextXAlignment.Left
-capa.TextYAlignment = Enum.TextYAlignment.Top
-capa.Text = [[⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣤⠶⠶⠶⠶⠶⢦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⣠⡶⠛⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⢦⣄⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⣰⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠳⣄⠀⠀⠀⠀
-⠀⠀⢠⡾⠁⠀⠀⢀⣤⣤⣤⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⡙⢷⡀⠀⠀
-⠀⢠⡟⠀⠀⠀⣰⣿⣿⡇⠀⠀⠙⢷⡀⠀⠀⠀⠀⢠⣾⣿⣿⠀⠀⠹⣮⢿⡀⠀
-⠀⣾⠀⠀⠀⢰⡏⠙⠛⠁⠀⠀⠀⠘⡇⠀⠀⠀⠀⣸⠋⠛⠋⠀⠀⠀⢹⠈⣧⠀
-⢸⡇⠀⠀⠀⠘⣧⣤⣤⣤⣤⣤⣤⣤⡇⠀⠀⠀⠀⢸⣧⣤⣤⣤⣤⣤⣾⠀⢹⡆
-⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇
-⢸⡇⠀⠀⠀⠀⣰⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⡶⠀⠀⣸⠇
-⠀⣿⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠁⠀⢀⡟⠀
-⠀⠘⣧⠀⠀⠀⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⣾⠁⠀
-⠀⠀⠘⢷⡀⠀⠀⢻⣿⡻⠋⠁⠀⠀⠀⠉⠻⣿⣿⣿⣿⡿⠃⠀⢠⡾⠁⠀⠀
-⠀⠀⠀⠀⠻⣦⡀⠀⠙⠷⣤⣀⠀⠀⠀⠀⠀⠈⣿⣿⡿⠋⠀⣀⡴⠋⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠙⠷⣤⣀⠀⠉⠛⠓⠒⠒⠒⠚⠋⠁⣠⣤⠾⠋⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠙⠛⠶⠶⠶⠶⠶⠶⠛⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀]]
-capa.Parent = mainFrame
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 36)
+title.BackgroundTransparency = 1
+title.Text = "☦ Painel Teológico do Murder Mystery"
+title.TextColor3 = Color3.fromRGB(200, 200, 0)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.Parent = mainFrame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 40, 0, 30)
+closeBtn.Size = UDim2.new(0, 40, 0, 26)
 closeBtn.Position = UDim2.new(1, -45, 0, 5)
 closeBtn.Text = "✕"
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 19
+closeBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
 closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
 closeBtn.Parent = mainFrame
 
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 60, 0, 30)
-openBtn.Position = UDim2.new(0, 10, 1, -40)
-openBtn.Text = "Abrir Painel"
-openBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+openBtn.Size = UDim2.new(0, 120, 0, 40)
+openBtn.Position = UDim2.new(0.5, -60, 0.9, 0)
+openBtn.Text = "ABRIR PAINEL"
+openBtn.Font = Enum.Font.GothamBold
+openBtn.TextSize = 20
+openBtn.BackgroundColor3 = Color3.fromRGB(30, 180, 90)
 openBtn.TextColor3 = Color3.fromRGB(255,255,255)
-openBtn.Visible = false
-openBtn.Parent = panel
+openBtn.Parent = ScreenGui
 
-local moveLeftBtn = Instance.new("TextButton")
-moveLeftBtn.Size = UDim2.new(0, 40, 0, 30)
-moveLeftBtn.Position = UDim2.new(0, 5, 0, 5)
-moveLeftBtn.Text = "←"
-moveLeftBtn.Parent = mainFrame
+-- Efeito de explosão teológica ao abrir
+openBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    openBtn.Visible = false
 
-local moveRightBtn = Instance.new("TextButton")
-moveRightBtn.Size = UDim2.new(0, 40, 0, 30)
-moveRightBtn.Position = UDim2.new(0, 55, 0, 5)
-moveRightBtn.Text = "→"
-moveRightBtn.Parent = mainFrame
+    local t = tick()
+    while tick() - t < 7 do
+        createExplosion(ScreenGui)
+        RunService.RenderStepped:Wait()
+        if math.random() > 0.8 then
+            createExplosion(ScreenGui)
+        end
+    end
+end)
 
--- Dropdown para selecionar jogador
-local viewDropdown = Instance.new("TextBox")
-viewDropdown.Size = UDim2.new(0.8, 0, 0, 30)
-viewDropdown.Position = UDim2.new(0.1, 0, 0, 395)
-viewDropdown.BackgroundColor3 = Color3.fromRGB(45,45,45)
-viewDropdown.PlaceholderText = "Nome do jogador para View"
-viewDropdown.TextColor3 = Color3.fromRGB(255,255,255)
-viewDropdown.Font = Enum.Font.GothamBold
-viewDropdown.TextSize = 16
-viewDropdown.Parent = mainFrame
-
--- Botão utilitário
-local function createButton(text, posY)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.8, 0, 0, 30)
-    btn.Position = UDim2.new(0.1, 0, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.Text = text
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.Parent = mainFrame
-    return btn
-end
-
-local btnEsp = createButton("ESP", 220)
-local btnUnEsp = createButton("UnESP", 255)
-local btnFly = createButton("Fly (ADM)", 290)
-local btnUnFly = createButton("UnFly", 325)
-local btnNoclip = createButton("Noclip", 360)
-local btnUnNoclip = createButton("UnNoclip", 395)
-local btnView = createButton("Ver Jogador", 430)
-local btnUnView = createButton("UnView", 465)
-local btnFling = createButton("Fling Player", 500)
-local btnUnFling = createButton("UnFling Player", 535)
-local btnIA = createButton("IA Movement", 570)
-
--- Fechar/Abrir Painel
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     openBtn.Visible = true
 end)
-openBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = true
-    openBtn.Visible = false
-end)
 
--- Mover para os lados
-moveLeftBtn.MouseButton1Click:Connect(function()
-    local pos = mainFrame.Position
-    mainFrame.Position = UDim2.new(pos.X.Scale, pos.X.Offset-50, pos.Y.Scale, pos.Y.Offset)
-end)
-moveRightBtn.MouseButton1Click:Connect(function()
-    local pos = mainFrame.Position
-    mainFrame.Position = UDim2.new(pos.X.Scale, pos.X.Offset+50, pos.Y.Scale, pos.Y.Offset)
-end)
+-- Murder Mystery Section
+local murderLabel = Instance.new("TextLabel")
+murderLabel.Size = UDim2.new(1, -20, 0, 28)
+murderLabel.Position = UDim2.new(0, 10, 0, 44)
+murderLabel.BackgroundTransparency = 1
+murderLabel.Text = "⚔ Murder Mystery"
+murderLabel.TextColor3 = Color3.fromRGB(255, 180, 60)
+murderLabel.Font = Enum.Font.GothamBold
+murderLabel.TextSize = 18
+murderLabel.Parent = mainFrame
 
--- ESP
-local espOn = false
-btnEsp.MouseButton1Click:Connect(function()
-    espOn = true
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-            if not p.Character.Head:FindFirstChild("ESP") then
-                local billboard = Instance.new("BillboardGui")
-                billboard.Name = "ESP"
-                billboard.Adornee = p.Character.Head
-                billboard.Size = UDim2.new(0, 100, 0, 40)
-                billboard.AlwaysOnTop = true
-                billboard.Parent = p.Character.Head
-                local label = Instance.new("TextLabel")
-                label.Size = UDim2.new(1,0,1,0)
-                label.BackgroundTransparency = 1
-                label.Text = p.Name
-                label.TextColor3 = Color3.fromRGB(255,50,50)
-                label.TextScaled = true
-                label.Parent = billboard
-            end
-        end
-    end
-end)
-btnUnEsp.MouseButton1Click:Connect(function()
-    espOn = false
-    for _, p in pairs(Players:GetPlayers()) do
-        if p.Character and p.Character:FindFirstChild("Head") then
-            local esp = p.Character.Head:FindFirstChild("ESP")
-            if esp then esp:Destroy() end
-        end
-    end
-end)
+-- ESP Options
+local espFrame = Instance.new("Frame")
+espFrame.Size = UDim2.new(1, -20, 0, 98)
+espFrame.Position = UDim2.new(0, 10, 0, 76)
+espFrame.BackgroundTransparency = 0.6
+espFrame.BackgroundColor3 = Color3.fromRGB(44,44,44)
+espFrame.BorderSizePixel = 0
+espFrame.Parent = mainFrame
 
--- Fly (ADM estilo)
-local flying = false
-local flyConn
-local flyVel
-btnFly.MouseButton1Click:Connect(function()
-    if flying then return end
-    flying = true
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    flyVel = Instance.new("BodyVelocity")
-    flyVel.MaxForce = Vector3.new(1e5,1e5,1e5)
-    flyVel.Velocity = Vector3.new(0,0,0)
-    flyVel.Parent = char.HumanoidRootPart
+local function addToggle(name, y, callback)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 140, 0, 28)
+    toggle.Position = UDim2.new(0, 16, 0, y)
+    toggle.Text = "[ ] "..name
+    toggle.Font = Enum.Font.Gotham
+    toggle.TextSize = 15
+    toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    toggle.TextColor3 = Color3.fromRGB(200,200,200)
+    toggle.Parent = espFrame
 
-    local function getFlyVector()
-        local v = Vector3.new()
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then v = v + workspace.CurrentCamera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then v = v - workspace.CurrentCamera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then v = v - workspace.CurrentCamera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then v = v + workspace.CurrentCamera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then v = v + Vector3.new(0,1,0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then v = v - Vector3.new(0,1,0) end
-        return v.Unit * 60
-    end
-
-    local UserInputService = game:GetService("UserInputService")
-    flyConn = game:GetService("RunService").Heartbeat:Connect(function()
-        if char and char:FindFirstChild("HumanoidRootPart") and flying then
-            flyVel.Velocity = getFlyVector()
-        end
+    local active = false
+    toggle.MouseButton1Click:Connect(function()
+        active = not active
+        toggle.Text = active and "[✔] "..name or "[ ] "..name
+        callback(active)
     end)
-end)
-btnUnFly.MouseButton1Click:Connect(function()
-    flying = false
-    if flyConn then flyConn:Disconnect() end
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") and flyVel then
-        flyVel:Destroy()
+end
+
+-- ESP Functions (implementação básica)
+local function highlightRole(roleColor)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local adorn = Instance.new("BoxHandleAdornment")
+            adorn.Size = Vector3.new(3, 6, 3)
+            adorn.Color3 = roleColor
+            adorn.Transparency = 0.4
+            adorn.ZIndex = 10
+            adorn.Adornee = p.Character.HumanoidRootPart
+            adorn.AlwaysOnTop = true
+            adorn.Parent = ScreenGui
+            delay(7, function() adorn:Destroy() end)
+        end
     end
+end
+
+addToggle("ESP Assassino", 5, function(on)
+    if on then highlightRole(Color3.fromRGB(220,0,0)) end
+end)
+addToggle("ESP Xerife", 38, function(on)
+    if on then highlightRole(Color3.fromRGB(0,0,220)) end
+end)
+addToggle("ESP Inocente", 71, function(on)
+    if on then highlightRole(Color3.fromRGB(0,220,0)) end
 end)
 
--- Noclip
+-- Funções de noclip/fly/view
+local actionFrame = Instance.new("Frame")
+actionFrame.Size = UDim2.new(1, -20, 0, 120)
+actionFrame.Position = UDim2.new(0, 10, 0, 184)
+actionFrame.BackgroundTransparency = 0.6
+actionFrame.BackgroundColor3 = Color3.fromRGB(44,44,44)
+actionFrame.BorderSizePixel = 0
+actionFrame.Parent = mainFrame
+
+local function addActionBtn(name, y, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 120, 0, 28)
+    btn.Position = UDim2.new(0, 16, 0, y)
+    btn.Text = name
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 15
+    btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    btn.TextColor3 = Color3.fromRGB(200,200,200)
+    btn.Parent = actionFrame
+    btn.MouseButton1Click:Connect(callback)
+end
+
 local noclipActive = false
-local noclipConn
-btnNoclip.MouseButton1Click:Connect(function()
-    if noclipActive then return end
+addActionBtn("Noclip", 5, function()
     noclipActive = true
-    noclipConn = game:GetService("RunService").Stepped:Connect(function()
-        local char = LocalPlayer.Character
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
 end)
-btnUnNoclip.MouseButton1Click:Connect(function()
+addActionBtn("UnNoclip", 38, function()
     noclipActive = false
-    if noclipConn then noclipConn:Disconnect() end
-    local char = LocalPlayer.Character
-    if char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
 end)
 
--- View Player (dropdown escolha)
-local viewing = false
-local origCam
-btnView.MouseButton1Click:Connect(function()
-    local name = viewDropdown.Text
-    local target
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower() == name:lower() then
-            target = p
-            break
-        end
-    end
-    if not target or not target.Character or not target.Character:FindFirstChild("Head") then return end
-    origCam = workspace.CurrentCamera.CameraSubject
-    workspace.CurrentCamera.CameraSubject = target.Character.Head
-    viewing = true
+local flyActive = false
+addActionBtn("Fly", 71, function()
+    flyActive = true
 end)
-btnUnView.MouseButton1Click:Connect(function()
-    if viewing and origCam then
-        workspace.CurrentCamera.CameraSubject = origCam
-        viewing = false
-    end
+addActionBtn("UnFly", 104, function()
+    flyActive = false
 end)
 
--- Fling Player
-local flinging = false
-local flingConn
-btnFling.MouseButton1Click:Connect(function()
-    local name = viewDropdown.Text
-    local target
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p.Name:lower() == name:lower() then
-            target = p
-            break
-        end
-    end
-    if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
-    flinging = true
-    flingConn = game:GetService("RunService").Stepped:Connect(function()
-        target.Character.HumanoidRootPart.Velocity = Vector3.new(500, 500, 500)
-    end)
-end)
-btnUnFling.MouseButton1Click:Connect(function()
-    flinging = false
-    if flingConn then flingConn:Disconnect() end
-end)
-
--- IA Movement
-local iaActive = false
-local iaConn
-btnIA.MouseButton1Click:Connect(function()
-    iaActive = not iaActive
-    btnIA.Text = iaActive and "Parar IA" or "IA Movement"
-    if iaActive then
-        local directions = {Vector3.new(1,0,0), Vector3.new(-1,0,0), Vector3.new(0,0,1), Vector3.new(0,0,-1)}
-        iaConn = game:GetService("RunService").Heartbeat:Connect(function()
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") then
-                local dir = directions[math.random(1,#directions)]
-                char.Humanoid:Move(dir, true)
-                if math.random(1,50) == 1 then
-                    char.Humanoid.Jump = true
+-- Noclip e Fly Loop
+RunService.Stepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if noclipActive then
+            for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
                 end
             end
-        end)
-    else
-        if iaConn then iaConn:Disconnect() end
-        btnIA.Text = "IA Movement"
+        else
+            for _,v in pairs(LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = true
+                end
+            end
+        end
+        if flyActive then
+            LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,20,0)
+        end
     end
 end)
+
+-- View/UnView Jogando (Selecionar player para assistir)
+local viewPlayersFrame = Instance.new("Frame")
+viewPlayersFrame.Size = UDim2.new(0, 108, 0, 120)
+viewPlayersFrame.Position = UDim2.new(1, -118, 0, 184)
+viewPlayersFrame.BackgroundTransparency = 0.8
+viewPlayersFrame.BackgroundColor3 = Color3.fromRGB(34,34,34)
+viewPlayersFrame.BorderSizePixel = 0
+viewPlayersFrame.Parent = mainFrame
+
+local viewing = nil
+
+local function updatePlayersList()
+    for _, child in pairs(viewPlayersFrame:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    local y = 4
+    for _,p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 24)
+            btn.Position = UDim2.new(0, 5, 0, y)
+            btn.Text = "View "..p.Name
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 13
+            btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+            btn.TextColor3 = Color3.fromRGB(240,240,240)
+            btn.Parent = viewPlayersFrame
+            btn.MouseButton1Click:Connect(function()
+                workspace.CurrentCamera.CameraSubject = p.Character and p.Character:FindFirstChild("Humanoid") or p.Character
+                viewing = p
+            end)
+            y = y + 26
+        end
+    end
+    -- Unview
+    local unBtn = Instance.new("TextButton")
+    unBtn.Size = UDim2.new(1, -10, 0, 24)
+    unBtn.Position = UDim2.new(0, 5, 0, y)
+    unBtn.Text = "UnView"
+    unBtn.Font = Enum.Font.Gotham
+    unBtn.TextSize = 13
+    unBtn.BackgroundColor3 = Color3.fromRGB(220,80,80)
+    unBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    unBtn.Parent = viewPlayersFrame
+    unBtn.MouseButton1Click:Connect(function()
+        workspace.CurrentCamera.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") or LocalPlayer.Character
+        viewing = nil
+    end)
+end
+
+updatePlayersList()
+Players.PlayerAdded:Connect(updatePlayersList)
+Players.PlayerRemoving:Connect(updatePlayersList)
+
+-- O painel pode ser movido, aberto/fechado, e está organizado
+-- Adicione funções de detecção de papéis do Murder Mystery para ESP se necessário (depende do jogo)
+
+-- FIM DO SCRIPT
