@@ -1,109 +1,121 @@
+-- Roblox Lua Script: Teleport GUI Lateral
+-- Mantém o sistema de teleporte + automático com delay de 0.50s
 
-loadstring([[
 local Players = game:GetService("Players")
-local CollectionService = game:GetService("CollectionService")
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Criar ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "OIHI173HUB"
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- GUI principal
+local gui = Instance.new("ScreenGui")
+gui.Name = "TeleportGUI"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = playerGui
 
--- Criar painel principal
+-- Lista de teleportes
+local teleports = {
+    {name = "Local 1", pos = Vector3.new(4009.78, 21.37, -6705.96)},
+    {name = "Local 2", pos = Vector3.new(4125.84, 37.00, -6733.84)},
+    {name = "Local 3", pos = Vector3.new(4124.55, 21.37, -6744.80)},
+    {name = "Local 4", pos = Vector3.new(3953.47, 21.00, -6689.76)}
+}
+
+-- Painel lateral
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 300)
-frame.Position = UDim2.new(0.1, 0, 0.2, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.BackgroundTransparency = 0.2
+frame.Size = UDim2.new(0, 220, 0, 320)
+frame.Position = UDim2.new(0, 10, 0.3, 0) -- esquerda da tela
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.Parent = screenGui
+frame.Parent = gui
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,10)
 
 -- Título
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 40)
 title.BackgroundTransparency = 1
-title.Text = "OIHI 173 HUB"
+title.Text = "⚡ Teleporte"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.SourceSansBold
-title.TextSize = 20
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Parent = frame
 
--- Botões de ESP
-local options = {
-    {"ESP Assassino", "Assassino", Color3.fromRGB(255,0,0)},
-    {"ESP Xerife", "Xerife", Color3.fromRGB(0,0,255)},
-    {"ESP Herói", "Heroi", Color3.fromRGB(255,255,0)},
-    {"ESP Inocente", "Inocente", Color3.fromRGB(0,255,0)},
-}
+-- Lista (ScrollingFrame)
+local listFrame = Instance.new("ScrollingFrame")
+listFrame.Size = UDim2.new(1, -10, 1, -50)
+listFrame.Position = UDim2.new(0, 5, 0, 45)
+listFrame.BackgroundTransparency = 1
+listFrame.BorderSizePixel = 0
+listFrame.ScrollBarThickness = 6
+listFrame.CanvasSize = UDim2.new(0,0,0,#teleports*45 + 60)
+listFrame.Parent = frame
 
-local toggles = {}
+local layout = Instance.new("UIListLayout", listFrame)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0,6)
 
-for i, data in ipairs(options) do
+-- Função de teleporte (suporte cadeira)
+local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local function teleportTo(pos)
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid.SeatPart then
+        TweenService:Create(humanoid.SeatPart, tweenInfo, {CFrame = CFrame.new(pos + Vector3.new(0,3,0))}):Play()
+    else
+        TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(pos + Vector3.new(0,3,0))}):Play()
+    end
+end
+
+-- Criar botões dos teleportes
+for _, info in ipairs(teleports) do
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.Position = UDim2.new(0, 10, 0, 40 * i)
+    btn.Size = UDim2.new(1, -8, 0, 40)
     btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-    btn.Text = data[1].." [OFF]"
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BackgroundTransparency = 0.1
+    btn.BorderSizePixel = 0
+    btn.Text = info.name
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 18
-    btn.Parent = frame
-
-    toggles[data[2]] = {enabled = false, button = btn, color = data[3]}
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = listFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
 
     btn.MouseButton1Click:Connect(function()
-        toggles[data[2]].enabled = not toggles[data[2]].enabled
-        if toggles[data[2]].enabled then
-            btn.Text = data[1].." [ON]"
-            btn.BackgroundColor3 = Color3.fromRGB(60,100,60)
-        else
-            btn.Text = data[1].." [OFF]"
-            btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-        end
+        teleportTo(info.pos)
     end)
 end
 
--- Criar BillboardGui para jogadores
-local function createBillboard(player, tag, color)
-    if player.Character and player.Character:FindFirstChild("Head") then
-        local billboard = Instance.new("BillboardGui")
-        billboard.Name = "RoleBillboard"
-        billboard.Adornee = player.Character.Head
-        billboard.Size = UDim2.new(0,100,0,30)
-        billboard.AlwaysOnTop = true
-        billboard.Parent = player.Character.Head
+-- Botão Auto Teleport
+local autoTeleporting = false
+local autoDelay = 0.50 -- meio segundo
 
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1,0,1,0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.Text = tag
-        textLabel.TextColor3 = color
-        textLabel.Font = Enum.Font.SourceSansBold
-        textLabel.TextSize = 16
-        textLabel.Parent = billboard
-    end
-end
+local autoBtn = Instance.new("TextButton")
+autoBtn.Size = UDim2.new(1, -8, 0, 40)
+autoBtn.BackgroundColor3 = Color3.fromRGB(80,50,50)
+autoBtn.BackgroundTransparency = 0.08
+autoBtn.BorderSizePixel = 0
+autoBtn.Text = "Auto Teleport: OFF"
+autoBtn.Font = Enum.Font.SourceSansBold
+autoBtn.TextSize = 18
+autoBtn.TextColor3 = Color3.new(1,1,1)
+autoBtn.Parent = listFrame
+Instance.new("UICorner", autoBtn).CornerRadius = UDim.new(0,6)
 
--- Loop de ESP
-RunService.RenderStepped:Connect(function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local head = player.Character.Head
-            local billboard = head:FindFirstChild("RoleBillboard")
-
-            if billboard then
-                billboard:Destroy()
-            end
-
-            for tag, data in pairs(toggles) do
-                if data.enabled and CollectionService:HasTag(player, tag) then
-                    createBillboard(player, tag, data.color)
+autoBtn.MouseButton1Click:Connect(function()
+    autoTeleporting = not autoTeleporting
+    autoBtn.Text = "Auto Teleport: "..(autoTeleporting and "ON" or "OFF")
+    if autoTeleporting then
+        task.spawn(function()
+            while autoTeleporting do
+                for _, info in ipairs(teleports) do
+                    if not autoTeleporting then break end
+                    teleportTo(info.pos)
+                    task.wait(autoDelay)
                 end
             end
-        end
+        end)
     end
 end)
-]])()
